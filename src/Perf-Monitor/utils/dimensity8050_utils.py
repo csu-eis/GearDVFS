@@ -10,11 +10,17 @@ def adb_shell(ip,cmd):
     # print()
     return res
 
+def simpleperf(ip,cpus,events,duration="100"):
+    # see simpleperf help monitor
+    cmd = f"/data/local/tmp/sys_perf {','.join([str(i) for i in cpus])} {','.join([str(i) for i in events])} {duration}"
+    res = adb_shell(ip,cmd)
+    return res
+
 def sample(config, monitor, events, cpus, t):
-    # raw = Perf.sys_perf(cpus, events, int(t))
+    raw = simpleperf(monitor.ip,cpus, events, int(t))
     log_data = {}
     log_data = monitor.query()
-    return log_data, None
+    return log_data, raw
 
 def onlineAllCPUs(ip,num_cpu):
     for idx in range(0,num_cpu):
@@ -97,5 +103,7 @@ def s2i(s):
 
 if __name__=="__main__":
     ip = "172.16.101.79:5555"
-    res = get_core_time(ip,8)
+    # res = get_core_time(ip,8)
+    # print(res)
+    res = simpleperf(ip,[0,1,2,3],[1,2,3,4],100)
     print(res)
