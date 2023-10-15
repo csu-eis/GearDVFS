@@ -1,6 +1,6 @@
 import subprocess
 import time
-import utils.perf_lib.PyPerf as Perf
+# import utils.perf_lib.PyPerf as Perf
 
 def sample(config, monitor, events, cpus, t):
     raw = Perf.sys_perf(cpus, events, int(t))

@@ -83,6 +83,8 @@ class Monitor(object):
         return query_result
 
 
+
+
 def monitor_daemon(config,conn):
     monitor = Monitor(config)
     while True:
