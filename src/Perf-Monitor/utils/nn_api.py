@@ -23,6 +23,12 @@ def save_model(url_base,m_info):
     resp = requests.get(url, params=m_info)
     return json.loads(resp.text)
 
+
+def clear_all(url_base):
+    url = url_base + "/clear_all"
+    resp = requests.get(url)
+    return resp.text
+
 def get_action(url_base,m_info,params):
     data = {**m_info, **params}
     url = url_base + "/get_action"

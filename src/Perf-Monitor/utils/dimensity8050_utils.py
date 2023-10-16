@@ -26,6 +26,18 @@ def onlineAllCPUs(ip,num_cpu):
     for idx in range(0,num_cpu):
         res = adb_shell(ip,f"echo 1 > /sys/devices/system/cpu/cpu{idx}/online")
 
+def setSoCFreq(ip,cpu0,cpu4,cpu7,gpu):
+    all_gpu_freq =[886000, 879000, 873000, 867000, 861000, 854000, 
+                   848000, 842000, 836000, 825000, 815000, 805000, 
+                   795000, 785000, 775000, 765000, 755000, 745000, 
+                   735000, 725000, 715000, 705000, 695000, 685000, 
+                   675000, 654000, 634000, 614000, 593000, 573000, 
+                   553000, 532000, 512000, 492000, 471000, 451000, 
+                   431000, 410000, 390000, 370000, 350000]
+    adb_shell(ip,f"echo {cpu0} {cpu4} {cpu7} > /proc/ppm/policy/ut_fix_freq_idx")
+    adb_shell(ip,f"echo {all_gpu_freq[gpu]} > /proc/gpufreq/gpufreq_opp_freq")
+
+
 def switchGovernorCPU(ip,idx,governor):
     if governor not in ["schedutil","userspace"]:
         return 
@@ -39,7 +51,7 @@ def getAvailableClockCPU(ip,idx=0):
     res = adb_shell(ip,f"cat /sys/devices/system/cpu/cpufreq/policy{idx}/scaling_available_frequencies")
     items = res.split(" ")
     clk_list = [int(i) for i in items if i!='' and i!='\n']
-    clk_list.reverse()  # 保证低档位是低频率
+    # clk_list.reverse()  # 保证低档位是低频率
     return clk_list
 
 def getAvailableClockGPU(ip):
@@ -47,7 +59,7 @@ def getAvailableClockGPU(ip):
     pattern = r'freq = (\d+)'
     matches = re.findall(pattern, res)
     clk_list = [int(s) for s in matches]
-    clk_list.reverse() # 保证低档位是低频率
+    # clk_list.reverse() # 保证低档位是低频率
     return clk_list
 
 # CPU Cores Utilization
@@ -105,5 +117,8 @@ if __name__=="__main__":
     ip = "172.16.101.79:5555"
     # res = get_core_time(ip,8)
     # print(res)
-    res = simpleperf(ip,[0,1,2,3],[1,2,3,4],100)
+    # res = simpleperf(ip,[0,1,2,3],[1,2,3,4],100)
+    # print(res)
+    
+    res = getAvailableClockGPU(ip)
     print(res)

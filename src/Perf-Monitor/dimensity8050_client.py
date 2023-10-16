@@ -62,24 +62,46 @@ def main():
 
     count, start_time = 0, time.time()
     # Benchmark training loop
+    
+    ONLY_TRAIN = True
+    ONLY_TEST = False
+    
     for epoch in range(1, BENCH_EPOCH):
         TRAIN = False if epoch%TEST_EPOCH==0 else True
         # Start bechmark process
         # bench_proc = subprocess.Popen(TARGET_BENCH,shell=True)
         # Sampling loop
+        record_count = 0
         while(True):
             # Reset Monitor
             t = time.time()
             # Run perf cmd & Request monitor data
-            # try:
-            # monitor.reset()
-            log_data, pmus = sample(config, monitor, events, cpus, PERF_TIME)
-            print(log_data, pmus)
-                # log_data = step_sample(config,start_time,perf_cmd,parent_conn)
-            # except Exception as err:
-            #     print("Perf Failed with Err: {}".format(err))
-            #     return
-            print(time.time()-t)
+            try:
+                log_data, pmus = sample(config, monitor, events, cpus, PERF_TIME)
+                # print(log_data)
+                
+                if ONLY_TRAIN:
+                    res = get_action(url_base,m_info,{
+                    "data":log_data
+                    })
+                    c0,c4,c7,g = res["action"]
+                    setSoCFreq(ip,c0,c4,c7,g)
+                    print(c0,c4,c7,g)
+                    record_count+=1
+                    # 每5个数据训练一次
+                    if (record_count%5==0 and record_count!=0):
+                        res = request_update(url_base,m_info)
+                elif ONLY_TEST:
+                    res = get_action_test(url_base,m_info,{
+                        "data":log_data
+                    })
+                    c0,c4,c7,g = res["action"]
+                    setSoCFreq(ip,c0,c4,c7,g)
+                    print(c0,c4,c7,g)
+            except Exception as err:
+                print("Perf Failed with Err: {}".format(err))
+                return
+            # print(time.time()-t)
 
  
 
@@ -93,5 +115,18 @@ def main():
 
 if __name__ == '__main__':
     ip = "172.16.101.79:5555"
-    url_base="http://172.16.101.75"
+    url_base="http://172.16.101.75:5000/nn"
+    
+    # init_params = {
+    #     # "m_type": "DQN"
+    # }
+    m_info = {
+        "m_type":"DQN_PHONE",
+    }
+    
+    res = init_model(url_base,m_info,{})
+    m_info["m_id"] = res["m_id"]
+    # print(res)
+    # res = clear_all(url_base)
+    # print(res)
     main()

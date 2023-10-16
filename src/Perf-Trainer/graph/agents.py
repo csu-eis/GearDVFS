@@ -15,6 +15,8 @@ import torch.utils.data
 
 # import graph.train_utils as train_utils
 # from graph.model import DQN_v0, ReplayMemory, DQN_AB, ReplayMemoryTime	
+import os,sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import train_utils as train_utils
 from model import DQN_v0, ReplayMemory, DQN_AB
 """
@@ -109,6 +111,11 @@ class DQN_AGENT():
 # Agent with action branching without time context
 class DQN_AGENT_AB():
 	def __init__(self, s_dim, h_dim, branches, buffer_size, params):
+		"""
+		s_dim是输入向量的维度
+		h_dim是隐藏层的温度
+		branches是一个列表内的每一个数字代表该分支的Actions大小。
+		"""
 		self.eps = 0.8
 		# 2D action space
 		self.actions = [np.arange(i) for i in branches]
@@ -150,7 +157,7 @@ class DQN_AGENT_AB():
 					final_actions.append(actions[i])
 				else:
 					final_actions.append(np.random.choice(self.actions[i]))
-
+		final_actions = [int(i) for i in final_actions]
 		return final_actions
 
 	def select_action(self, state):
@@ -177,7 +184,7 @@ class DQN_AGENT_AB():
 				next_state_values = target_result[j].max(dim=1)[0].detach()
 				expected_state_action_values = (next_state_values*GAMMA) + rewards.float()
 				# Gather action-values that have been taken
-				branch_actions = actions[:,j].long()
+				branch_actions = actions[j].long()
 				state_action_values = policy_result[j].gather(1, branch_actions.unsqueeze(1))
 				loss += self.criterion(state_action_values, expected_state_action_values.unsqueeze(1))
 			losses.append(loss.item())

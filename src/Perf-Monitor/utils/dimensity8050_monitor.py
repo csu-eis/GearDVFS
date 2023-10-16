@@ -33,6 +33,7 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 class AndroidMonitor(object):
+    prev_cpu_time=([0 for i in range(8)],[0 for i in range(8)])
     def __init__(self, ip,config):
         self.ip = ip
         self.num_cpu = check_cpus(config)
@@ -79,7 +80,13 @@ class AndroidMonitor(object):
         pattern = r'gpu_loading = (\d+)'
 
         matches = re.findall(pattern, res)
-        return float(matches[0])
+        return [float(matches[0])]
+    
+    def get_cpu_loading(self):
+        # if not self.prev_cpu_time:
+        #     self.prev_cpu_time=(0,0)
+        core_util,self.prev_cpu_time=parse_core_util(self.ip,self.prev_cpu_time,8)
+        return core_util
       
     def get_gpu_freq(self):
         res = adb_shell(self.ip,"cat /proc/gpufreq/gpufreq_var_dump")
@@ -88,7 +95,7 @@ class AndroidMonitor(object):
 
         if match:
             freq_value = match.group(1)
-            return int(freq_value)  
+            return [int(freq_value)]
         
     def get_cpu_freq(self,idx):
         res = adb_shell(self.ip,f"cat /sys/devices/system/cpu/cpufreq/policy{idx}/scaling_cur_freq")
@@ -98,19 +105,21 @@ class AndroidMonitor(object):
     def get_cpu_temp(self):
         res = adb_shell(self.ip,f"cat /sys/class/thermal/thermal_zone0/temp")
         res = res.replace("\n","")
-        return float(res)/1000.0
+        return [float(res)/1000.0]
     
     def get_gpu_temp(self):
         res = adb_shell(self.ip,f"cat /sys/class/thermal/thermal_zone4/temp")
         res = res.replace("\n","")
-        return float(res)/1000.0 # 摄氏度
+        return [float(res)/1000.0] # 摄氏度
 
     def get_power(self):
         res = adb_shell(self.ip,f"cat /sys/class/power_supply/battery/current_now")
         current = float(res.replace("\n","")) * 1.0 / 1e3
         res = adb_shell(self.ip,f"cat /sys/class/power_supply/battery/voltage_now")
         voltage = float(res.replace("\n","")) * 1.0 / 1e6
-        return float(abs(current)*abs(voltage)) # mW
+        return [float(abs(current)*abs(voltage))] # mW
+    
+    
 
 
     def query(self):
@@ -120,7 +129,8 @@ class AndroidMonitor(object):
         # for domain in [self.powers, self.thermals]:
         #     for item in domain:
         #         query_result[item["name"]] = item["m"].avg
-        query_result["gpu_util"] = self.get_gpu_loading()
+        query_result["gpu_u"] = self.get_gpu_loading()
+        query_result["cpu_u"] = self.get_cpu_loading()
         query_result["gpu_f"] = self.get_gpu_freq()
         query_result["cpu_f"] = [self.get_cpu_freq(0),self.get_cpu_freq(4),self.get_cpu_freq(7)]
         query_result["cpu_t"] = self.get_cpu_temp()
