@@ -131,23 +131,17 @@ def main():
     switchGovernorCPU(ip,4,"schedutil")
     switchGovernorCPU(ip,7,"schedutil")
     switchGovernorGPU(ip,"simple_ondemand")
-    # set_value(config["cpu"]["gov"].replace("$$",str(0)),'schedutil')
-    # set_value(config['gpu']['gov'], 'simple_ondemand')
+
 
 if __name__ == '__main__':
     ip = "172.16.101.79:5555"
     url_base="http://172.16.101.75:5000/nn"
     
-    # init_params = {
-    #     # "m_type": "DQN"
-    # }
     m_info = {
         "m_type":"DQN_PHONE",
     }
     
     res = init_model(url_base,m_info,{})
     m_info["m_id"] = res["m_id"]
-    # print(res)
-    # res = clear_all(url_base)
-    # print(res)
+
     main()

@@ -126,9 +126,7 @@ class AndroidMonitor(object):
         # utils, self.prev_cpu_time = parse_core_util(self.prev_cpu_time,self.num_cpu)
         # self.__sample()
         query_result = {}
-        # for domain in [self.powers, self.thermals]:
-        #     for item in domain:
-        #         query_result[item["name"]] = item["m"].avg
+
         query_result["gpu_u"] = self.get_gpu_loading()
         query_result["cpu_u"] = self.get_cpu_loading()
         query_result["gpu_f"] = self.get_gpu_freq()

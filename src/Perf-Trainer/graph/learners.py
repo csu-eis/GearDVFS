@@ -172,7 +172,7 @@ def dqn_phone(pipe, learn_state, init_params):
             AGENT.eps = EPS_END + (EPS_START - EPS_END) * \
                 math.exp(-1. * g_step / EPS_DECAY)
             action = AGENT.select_action(torch.from_numpy(state).unsqueeze(0))
-            print("reward is {}".format(reward))
+            print("reward is {}, action is {}".format(reward,action))
             pipe.send({"action":action})
 
             # Add transition (state, action, next_state, reward) into replay buffer
@@ -248,9 +248,10 @@ def cal_cpu_reward(cpu_utils,cpu_temps,cluster_num):
     # for cpu
     cpu_u_max,cpu_u_min = 0.85,0.75
     cpu_u_g = 0.8
-    u,v,w = 1,1,1
+    u,v,w = -0.1,0.11,0.1
     temp_thre = 60
     reward_value = 0.0
+    print('cpu',end=': ')
     for cpu_u,cpu_t in zip(cpu_utils,cpu_temps):
         if cpu_u < cpu_u_min and cpu_u > cpu_u_max:
             d =lambda_value
@@ -260,7 +261,9 @@ def cal_cpu_reward(cpu_utils,cpu_temps,cluster_num):
             w = 0.2 * math.tanh(temp_thre-cpu_t)
         else:
             w = -2
-        reward_value += (w + d)
+        reward_value += d
+        print(f"{cpu_u}:{d}",end=',')
+    
     return reward_value/cluster_num
   
 def cal_gpu_reward(gpu_utils,gpu_temps,num):
@@ -268,9 +271,10 @@ def cal_gpu_reward(gpu_utils,gpu_temps,num):
     # for cpu
     gpu_u_max,gpu_u_min = 0.85,0.75
     gpu_u_g = 0.8
-    u,v,w = 1,1,1
+    u,v,w = -0.1,0.11,0.1
     temp_thre = 60
     reward_value = 0
+    print('gpu',end=': ')
     for gpu_u,gpu_t in zip(gpu_utils,gpu_temps):
         if gpu_u < gpu_u_min and gpu_u > gpu_u_max:
             d =lambda_value
@@ -280,7 +284,8 @@ def cal_gpu_reward(gpu_utils,gpu_temps,num):
             w = 0.2 * math.tanh(temp_thre-gpu_t)
         else:
             w = -2
-        reward_value += (w + d)
+        reward_value += d
+        print(f"{gpu_u}:{d}",end=',')
     return reward_value/num 
 
 def get_ob_phone(log_data):
@@ -298,7 +303,7 @@ def get_ob_phone(log_data):
     
     reward = cal_cpu_reward(cpu_util,cpu_thremal,8)
     reward += cal_gpu_reward(gpu_util,gpu_thremal,1)
-    
+    print()
     return states,reward
 
 def get_ob_xu3(log_data):

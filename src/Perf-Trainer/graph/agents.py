@@ -215,7 +215,9 @@ class DQN_AGENT_AB():
 			self.target_net.load_state_dict(checkpoint['model_state_dict'])
 			self.target_net.eval()
 		if os.path.exists(os.path.join(loadpath,"memory")):
-			self.mem = pickle.load(os.path.join(loadpath,"memory"))
+			f = open(os.path.join(loadpath,"memory"),'rb')
+			self.mem = pickle.load(f)
+			f.close()
 
 	def sync_model(self):
 		self.target_net.load_state_dict(self.policy_net.state_dict())
