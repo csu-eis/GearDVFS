@@ -244,15 +244,16 @@ def get_ob(log_data):
 
 import math
 def cal_cpu_reward(cpu_utils,cpu_temps,cluster_num):
-    lambda_value = 0.1
+    lambda_value = 0.15
     # for cpu
     cpu_u_max,cpu_u_min = 0.85,0.75
     cpu_u_g = 0.8
-    u,v,w = -0.1,0.11,0.1
+    u,v,w = -0.2,0.21,0.1
     temp_thre = 60
     reward_value = 0.0
+    cpu_t =cpu_temps[0]
     print('cpu',end=': ')
-    for cpu_u,cpu_t in zip(cpu_utils,cpu_temps):
+    for cpu_u in cpu_utils:
         if cpu_u < cpu_u_min and cpu_u > cpu_u_max:
             d =lambda_value
         else:
@@ -262,7 +263,7 @@ def cal_cpu_reward(cpu_utils,cpu_temps,cluster_num):
         else:
             w = -2
         reward_value += d
-        print(f"{cpu_u}:{d}",end=',')
+        print(f"{d}",end=',')
     
     return reward_value/cluster_num
   
@@ -271,7 +272,7 @@ def cal_gpu_reward(gpu_utils,gpu_temps,num):
     # for cpu
     gpu_u_max,gpu_u_min = 0.85,0.75
     gpu_u_g = 0.8
-    u,v,w = -0.1,0.11,0.1
+    u,v,w = -0.05,0.051,0.1
     temp_thre = 60
     reward_value = 0
     print('gpu',end=': ')
@@ -285,7 +286,7 @@ def cal_gpu_reward(gpu_utils,gpu_temps,num):
         else:
             w = -2
         reward_value += d
-        print(f"{gpu_u}:{d}",end=',')
+        print(f"{d}",end=',')
     return reward_value/num 
 
 def get_ob_phone(log_data):
