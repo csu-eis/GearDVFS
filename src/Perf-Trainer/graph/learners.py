@@ -130,8 +130,10 @@ def dqn_nx(pipe, learn_state, init_params):
 def dqn_phone(pipe, learn_state, init_params):
     # Agent Initialization
     NAME = "DQN_PHONE" 
+    # ROOT = os.path.join(
+    #     "./db/", NAME, str(datetime.datetime.now().strftime('%m%d-%H%M')))
     ROOT = os.path.join(
-        "./db/", NAME, str(datetime.datetime.now().strftime('%m%d-%H%M')))
+        "./db/", NAME, "test")
     log_path = os.path.join(ROOT,"Log")
     model_savepath = os.path.join(ROOT,"Model")
     if not os.path.isdir(log_path): os.makedirs(log_path)
@@ -145,11 +147,11 @@ def dqn_phone(pipe, learn_state, init_params):
     n_update, n_batch = 5,4
     SYNC_STEP = 30
  
-    N_S,  N_BUFFER = 18, 12000
+    N_S,  N_BUFFER = 18, 36000
     learn_state.value = 1
     # TODO Analysis
     AGENT = DQN_AGENT_AB(N_S,8,[16,16,16,40],N_BUFFER,None)
-    # AGENT.load_model("./db/DQN/test/Model")
+    AGENT.load_model(model_savepath)
     # Reset States
     prev_state, prev_action = [None]*2
     record_count, test_count, n_round, g_step = [0]*4

@@ -4,7 +4,7 @@ import csv
 import json
 import time
 import datetime
-
+import pickle
 import numpy as np
 import pandas as pd
 
@@ -116,7 +116,9 @@ class DQN_AGENT_AB():
 		h_dim是隐藏层的温度
 		branches是一个列表内的每一个数字代表该分支的Actions大小。
 		"""
+  		
 		self.eps = 0.8
+		# self.params = params
 		# 2D action space
 		self.actions = [np.arange(i) for i in branches]
 		# Experience Replay(requires belief state and observations)
@@ -124,6 +126,8 @@ class DQN_AGENT_AB():
 		# Initi networks
 		self.policy_net = DQN_AB(s_dim, h_dim, branches)
 		self.target_net = DQN_AB(s_dim, h_dim, branches)
+		
+		# self.weights = params["policy_net"]
 		self.target_net.load_state_dict(self.policy_net.state_dict())
 		self.target_net.eval()
 
@@ -171,7 +175,7 @@ class DQN_AGENT_AB():
 			self.mem, shuffle=True, batch_size=n_batch, drop_last=True)
 		length = len(train_loader.dataset)
 		GAMMA = 1.0
-
+	
 		# Calcuate loss for each branch and then simply sum up
 		for i, trans in enumerate(train_loader):
 			loss = 0.0 # initialize loss at the beginning of each batch
@@ -192,22 +196,26 @@ class DQN_AGENT_AB():
 			loss.backward()
 			if i>n_update:
 				break
-			# Gradient clipping to prevent exploding gradients
-			# for param in self.policy_net.parameters()
-			# 	param.grad.data.clamp_(-1, 1)
+
 			self.optimizer.step()
 		return losses
 
 	def save_model(self, n_round, savepath):
 		train_utils.save_checkpoint({'epoch': n_round, 'model_state_dict':self.target_net.state_dict(),
 	        'optimizer_state_dict':self.optimizer.state_dict()}, savepath)
+		f = open(os.path.join(savepath,"memory"), 'wb')
+		pickle.dump(self.mem,f)
+		f.close()
 
 	def load_model(self, loadpath):
 		if not os.path.isdir(loadpath): os.makedirs(loadpath)
 		checkpoint = train_utils.load_checkpoint(loadpath)
-		self.policy_net.load_state_dict(checkpoint['model_state_dict'])
-		self.target_net.load_state_dict(checkpoint['model_state_dict'])
-		self.target_net.eval()
+		if checkpoint is not None:
+			self.policy_net.load_state_dict(checkpoint['model_state_dict'])
+			self.target_net.load_state_dict(checkpoint['model_state_dict'])
+			self.target_net.eval()
+		if os.path.exists(os.path.join(loadpath,"memory")):
+			self.mem = pickle.load(os.path.join(loadpath,"memory"))
 
 	def sync_model(self):
 		self.target_net.load_state_dict(self.policy_net.state_dict())

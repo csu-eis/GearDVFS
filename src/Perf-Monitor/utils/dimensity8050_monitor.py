@@ -103,7 +103,7 @@ class AndroidMonitor(object):
         return int(res)
     
     def get_cpu_temp(self):
-        res = adb_shell(self.ip,f"cat /sys/class/thermal/thermal_zone0/temp")
+        res = adb_shell(self.ip,f"cat /sys/class/thermal/thermal_zone4/temp")
         res = res.replace("\n","")
         return [float(res)/1000.0]
     

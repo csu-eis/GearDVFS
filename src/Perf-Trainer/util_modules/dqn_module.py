@@ -21,13 +21,6 @@ Format:{"DeepDep":{
 """
 globals()["DeepDep"] = {}
 
-# @nn_api.route('/nn/test_action', methods=['POST'])
-# def test_action():
-#     init_params = json.loads(flask.request.json)
-#     m_type = init_params["m_type"]
-#     learner = learner_factory(m_type)
-#     return flask.jsonify({"status":False,"result":learner()})
-
 @nn_api.route('/nn/init_model', methods=['POST'])
 def init_model():
     init_params = json.loads(flask.request.json)
@@ -102,19 +95,7 @@ def get_test_power():
     else:
         return flask.jsonify({"status":False})
 
-# @nn_api.route('/nn/train', methods=['POST'])
-# def get_action_update():
-#     params = json.loads(flask.request.json)
-#     m_type, m_id, t = params["m_type"],params["m_id"],params["t"]
-#     m_uuid = check_client(m_id)
-#     if m_uuid:
-#         learner = globals()["DeepDep"][m_type][m_uuid]
-#         s,s1,a,r = t["s"],t["s1"],t["a"],t["r"]
-#         a_new, max_val = learner.get_action(s,eps=params['eps'])
-#         learner.update_table((s,a,s1,r))
-#         return flask.jsonify({"status":True,"action":a_new,"max_val":max_val})
-#     else:
-#         return flask.jsonify({"status":False})
+
 
 @nn_api.route('/nn/check_model_status', methods=['GET'])
 def check_model_status():

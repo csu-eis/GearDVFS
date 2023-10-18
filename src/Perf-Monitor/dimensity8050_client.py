@@ -6,7 +6,7 @@ import random
 import configparser
 import subprocess
 from multiprocessing import Process, Pipe
-
+import numpy as np
 from utils.dimensity8050_utils import *
 from utils.nn_api import *
 from utils.dimensity8050_monitor import AndroidMonitor
@@ -66,27 +66,48 @@ def main():
     ONLY_TRAIN = True
     ONLY_TEST = False
     
+    gpu_u = []
+    cpu_u = []
+    cpu_t = []
+    gpu_t = []
+    power = []
+    
     for epoch in range(1, BENCH_EPOCH):
         TRAIN = False if epoch%TEST_EPOCH==0 else True
         # Start bechmark process
         # bench_proc = subprocess.Popen(TARGET_BENCH,shell=True)
         # Sampling loop
         record_count = 0
+        iter =  5
         while(True):
             # Reset Monitor
             t = time.time()
             # Run perf cmd & Request monitor data
             try:
                 log_data, pmus = sample(config, monitor, events, cpus, PERF_TIME)
+                iter+=1
+                gpu_u.append(log_data["gpu_u"])
+                cpu_u.append(log_data["cpu_u"])
+                cpu_t.append(log_data["cpu_t"])
+                gpu_t.append(log_data["gpu_t"])
+                power.append(log_data["power"])
                 # print(log_data)
-                
+                if iter < 5:
+                    time.sleep(0.2)
+                    continue
+                iter = 0
+                log_data["gpu_u"] = np.mean(np.asanyarray(gpu_u),axis=0).tolist()
+                log_data["cpu_u"] = np.mean(np.asanyarray(cpu_u),axis=0).tolist()
+                log_data["cpu_t"] = np.mean(np.asanyarray(cpu_t),axis=0).tolist()
+                log_data["gpu_t"] = np.mean(np.asanyarray(gpu_t),axis=0).tolist()
+                log_data["power"] = np.mean(np.asanyarray(power),axis=0).tolist()
                 if ONLY_TRAIN:
                     res = get_action(url_base,m_info,{
                     "data":log_data
                     })
                     c0,c4,c7,g = res["action"]
                     setSoCFreq(ip,c0,c4,c7,g)
-                    print(c0,c4,c7,g)
+                    print(log_data)
                     record_count+=1
                     # 每5个数据训练一次
                     if (record_count%5==0 and record_count!=0):
